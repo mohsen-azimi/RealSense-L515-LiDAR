@@ -1,0 +1,27 @@
+#camera parameters
+name: L515
+# for L515, the resolution of rgb is 1280*720, 60fps; 1920*1080, 30fps.
+rgb:
+  width: 1280
+  height: 720
+  fps: 30
+
+# the depth and infrared are corresponding, have same resolution
+# For D435, the resolution is multi, 640*480, 90fps; 1280*720, 30fps; 1280*800, 30fps
+# For L515, the resolution of rgb is 1024*768 or 640*480, and fps is 30
+depth_infrared:
+  width: 1024
+  height: 768
+  fps: 30
+
+imu:
+  fps: 400
+
+#inner_matrix:
+## [fx,s,cx;0,fy,cy;0,0,1]
+#  - [500,0,300]
+#  - [0,520,200]
+#  - [0,0,1]
+#distortion_coefficients: [0,0,0,0,0]
+
+
