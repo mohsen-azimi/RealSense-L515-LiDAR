@@ -9,6 +9,7 @@ import logging
 import numpy as np
 import pyrealsense2 as rs
 import yaml
+from tkinter import filedialog
 
 
 class Frame(object):
@@ -29,14 +30,18 @@ class Frame(object):
 
 class L515:
     def __init__(self, enable_rgbd=True, enable_imu=False,
-                 record_bag=None, read_bag=None):
+                 record_bag=None, read_bag=None, reset=False):
+
+        self.reset = reset
         print("connecting to camera...")
 
         self.enable_imu = enable_imu
         self.enable_rgbd = enable_rgbd
 
-        self.record_bag = record_bag
         self.read_bag = read_bag
+        self.read_bag_path = None
+        self.record_bag = record_bag
+        self.record_bag_path = None
 
         self._cfg = yaml.load(open('config\\camera_rs.yaml', 'r'), Loader=yaml.FullLoader)
         self.imu_fps = self._cfg['imu']['fps']
@@ -49,12 +54,19 @@ class L515:
         self.pipeline = rs.pipeline()
         config = rs.config()
 
-        # Get device product line for setting a supporting resolution
-        pipeline_profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
-        device = pipeline_profile.get_device()
-        # device_product_line = str(device.get_info(rs.camera_info.product_line))
-        for i, s in enumerate(device.sensors):
-            print(f"Sensor({i}): ", s.get_info(rs.camera_info.name))
+        # # Get device product line for setting a supporting resolution
+        # profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
+        # device = profile.get_device()
+        #
+        # if self.reset:
+        #     print("resetting...")
+        #     device.hardware_reset()
+        #     time.sleep(10)
+        #     print("reset!")
+        #
+        # # device_product_line = str(device.get_info(rs.camera_info.product_line))
+        # for i, s in enumerate(device.sensors):
+        #     print(f"Sensor({i}): ", s.get_info(rs.camera_info.name))
 
         if self.enable_rgbd:
             config.enable_stream(rs.stream.color, self.rgb_res[0], self.rgb_res[1], rs.format.bgr8, self.rgb_fps)
@@ -68,21 +80,27 @@ class L515:
             config.enable_stream(rs.stream.pose, rs.format.six_dof, self.imu_fps)  #
 
         if self.read_bag:
-            print("Reading a bag file...")
-            # config.enable_device_from_file(self.read_bag)
-            config.enable_device_from_file(self.read_bag, repeat_playback=False)
+
+            self.read_bag_path = filedialog.askopenfilename(initialdir='outputs\\bag\\')
+            # self.read_bag_path = 'outputs\\bag\\bag.bag'
+            # config.enable_device_from_file(self.read_bag_path)
+            config.enable_device_from_file(self.read_bag_path, repeat_playback=False)
+            print(f'Reading data from {self.read_bag_path}')
+
         elif self.record_bag:
-            print("Recording a bag file...")
-            config.enable_record_to_file(self.record_bag)
+            self.record_bag_path = time.strftime('outputs\\bag\\%Y%m%d_%H%M%S')+'.bag'
+            config.enable_record_to_file(self.record_bag_path)
+            print(f'Recording data to {self.record_bag_path}')
+
         else:
             pass
 
         # Start streaming
-        self.profile = self.pipeline.start(config)
+        profile = self.pipeline.start(config)
 
         # Getting the depth sensor's depth scale (see rs-align example for explanation)
         if self.enable_rgbd:
-            depth_sensor = self.profile.get_device().first_depth_sensor()
+            depth_sensor = profile.get_device().first_depth_sensor()
             self.depth_scale = depth_sensor.get_depth_scale()
             # Create an align object
             # rs.align allows us to perform alignment of depth frames to others frames
@@ -95,13 +113,29 @@ class L515:
         #     self.pipeline.wait_for_frames()
 
 
+    def get_options(self):
+        sensor = self.pipeline.get_active_profile().get_device().query_sensors()[1]
+        print(sensor.get_option(rs.option.exposure))
+
+    def set_options(self):
+        # Get the sensor once at the beginning. (Sensor index: 1)
+        sensor = self.pipeline.get_active_profile().get_device().query_sensors()[1]
+
+        # Set the exposure anytime during the operation
+        # rs.option.exposure = self._cfg['options']['exposure']
+
+        sensor.set_option(rs.option.enable_auto_exposure, 0)
+        sensor.set_option(rs.option.exposure, self._cfg['options']['exposure'])
+
+
+
     def get_frame(self):
         # Get frameset of color and depth
-        frames = self.pipeline.wait_for_frames()
+        frameset  = self.pipeline.wait_for_frames()
         # frames.get_depth_frame() is a 640x360 depth image
 
         # Align the depth frame to color frame
-        aligned_frames = self.align.process(frames)
+        aligned_frames = self.align.process(frameset)
 
         # Get aligned frames
         aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
@@ -169,8 +203,8 @@ class L515:
 
     def clip_distance(self, depth_image, distance, depth):
         clipping_distance_in_meters = distance  # 1 meter
-        depth_scale = self.get_depth_scale()
-        clipping_distance = clipping_distance_in_meters / depth_scale
+
+        clipping_distance = clipping_distance_in_meters / self.depth_scale
 
         grey_color = 0
         depth_image_3d = np.dstack((depth_image, depth_image, depth_image))
