@@ -7,7 +7,7 @@ import cv2 as cv
 from camera import L515
 import pyrealsense2 as rs
 import numpy as np
-import open3d as o3d
+# import open3d as o3d
 
 
 
@@ -18,7 +18,7 @@ def mouse_coord(event, x, y, args, params):
 
 
 # Initialize Camera
-camera = L515(read_bag=True)
+camera = L515()
 
 # try:
     # Streaming loop
