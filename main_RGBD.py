@@ -10,6 +10,7 @@ import numpy as np
 import open3d as o3d
 
 
+
 point = (400, 300)
 def mouse_coord(event, x, y, args, params):
     global point
