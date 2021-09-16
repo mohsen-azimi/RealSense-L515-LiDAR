@@ -8,13 +8,14 @@ import pyrealsense2 as rs
 import numpy as np
 import cv2 as cv
 
+import read_bag
 from camera import L515
 from app_state import AppState
 
 state = AppState()
 
 # Initialize Camera
-camera = L515()
+camera = L515(read_bag=True)
 
 print(rs.camera_info)
 # Processing blocks

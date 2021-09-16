@@ -45,7 +45,7 @@ options:
   enable_pose_jumping : option.enable_pose_jumping
   enable_relocalization : option.enable_relocalization
   error_polling_enabled : option.error_polling_enabled
-  exposure : 1000
+  exposure : 100
   filter_magnitude : option.filter_magnitude
   filter_option : option.filter_option
   filter_smooth_alpha : option.filter_smooth_alpha

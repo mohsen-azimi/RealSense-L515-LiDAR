@@ -54,15 +54,15 @@ class L515:
         self.pipeline = rs.pipeline()
         config = rs.config()
 
-        # # Get device product line for setting a supporting resolution
-        # profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
-        # device = profile.get_device()
+        # Get device product line for setting a supporting resolution
+        profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
+        device = profile.get_device()
         #
-        # if self.reset:
-        #     print("resetting...")
-        #     device.hardware_reset()
-        #     time.sleep(10)
-        #     print("reset!")
+        if self.reset:
+            print("resetting...")
+            device.hardware_reset()
+            time.sleep(10)
+            print("reset!")
         #
         # # device_product_line = str(device.get_info(rs.camera_info.product_line))
         # for i, s in enumerate(device.sensors):
@@ -84,7 +84,7 @@ class L515:
             self.read_bag_path = filedialog.askopenfilename(initialdir='outputs\\bag\\')
             # self.read_bag_path = 'outputs\\bag\\bag.bag'
             # config.enable_device_from_file(self.read_bag_path)
-            config.enable_device_from_file(self.read_bag_path, repeat_playback=False)
+            config.enable_device_from_file(self.read_bag_path, repeat_playback=True)
             print(f'Reading data from {self.read_bag_path}')
 
         elif self.record_bag:

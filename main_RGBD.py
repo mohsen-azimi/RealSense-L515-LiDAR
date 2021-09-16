@@ -7,8 +7,7 @@ import cv2 as cv
 from camera import L515
 import pyrealsense2 as rs
 import numpy as np
-# import open3d as o3d
-
+import open3d as o3d
 
 
 point = (400, 300)
@@ -18,8 +17,7 @@ def mouse_coord(event, x, y, args, params):
 
 
 # Initialize Camera
-camera = L515()
-
+camera = L515(read_bag=True)
 # try:
     # Streaming loop
 while True:
@@ -47,13 +45,13 @@ while True:
         # cv.namedWindow('IR', cv.WINDOW_AUTOSIZE)
         # cv.imshow('IR', infrared)
 
-        cv.setMouseCallback('Depth', mouse_coord)  # to show distance on mouse
-        # Show distance for a specific point
-        cv.circle(depth_image_colorised, point, 5, (0, 0, 255))
-        distance = depth_image[point[1], point[0]] * camera.depth_scale
-
-        cv.putText(depth_image_colorised, f'{distance:.3f} m', (point[0], point[1] - 20), cv.FONT_HERSHEY_PLAIN, 2,
-                   (0, 255, 255), 4)
+        # cv.setMouseCallback('Depth', mouse_coord)  # to show distance on mouse
+        # # Show distance for a specific point
+        # cv.circle(depth_image_colorised, point, 5, (0, 0, 255))
+        # distance = depth_image[point[1], point[0]] * camera.depth_scale
+        #
+        # cv.putText(depth_image_colorised, f'{distance:.3f} m', (point[0], point[1] - 20), cv.FONT_HERSHEY_PLAIN, 2,
+        #            (0, 255, 255), 4)
 
         cv.imshow('Color', color_image)
         cv.imshow('Depth', depth_image_colorised)
