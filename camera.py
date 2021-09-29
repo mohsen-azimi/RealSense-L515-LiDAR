@@ -13,7 +13,7 @@ from tkinter import filedialog
 
 
 class Frame(object):
-    def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image, point_cloud, acceleration, gyroscope):
+    def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image,point_cloud , acceleration, gyroscope):
         self.color_frame = color_frame
         self.color_image = color_image
 
@@ -55,14 +55,17 @@ class L515:
         config = rs.config()
 
         # Get device product line for setting a supporting resolution
-        profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
-        device = profile.get_device()
+        if not self.read_bag:
+            profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
+            device = profile.get_device()
+
+            if self.reset:
+                print("resetting...")
+                device.hardware_reset()
+                time.sleep(10)
+                print("reset!")
         #
-        if self.reset:
-            print("resetting...")
-            device.hardware_reset()
-            time.sleep(10)
-            print("reset!")
+
         #
         # # device_product_line = str(device.get_info(rs.camera_info.product_line))
         # for i, s in enumerate(device.sensors):
@@ -102,6 +105,7 @@ class L515:
         if self.enable_rgbd:
             depth_sensor = profile.get_device().first_depth_sensor()
             self.depth_scale = depth_sensor.get_depth_scale()
+
             # Create an align object
             # rs.align allows us to perform alignment of depth frames to others frames
             # The "align_to" is the stream type to which we plan to align depth frames.
@@ -131,26 +135,33 @@ class L515:
 
     def get_frame(self):
         # Get frameset of color and depth
-        frameset  = self.pipeline.wait_for_frames()
-        # frames.get_depth_frame() is a 640x360 depth image
+        frameset = self.pipeline.wait_for_frames()
+
+        color_frame = frameset.get_color_frame()
+        depth_frame = frameset.get_depth_frame()
+        ir_frame = frameset.get_infrared_frame()
 
         # Align the depth frame to color frame
         aligned_frames = self.align.process(frameset)
 
         # Get aligned frames
-        aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
+        aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image
+        # aligned_color_frame = aligned_frames.get_color_frame()
+        aligned_ir_frame = aligned_frames.get_infrared_frame()
 
-        color_frame = aligned_frames.get_color_frame()
-        depth_frame = aligned_frames.get_depth_frame()
-        ir_frame = aligned_frames.get_infrared_frame()
+        # Validate that both frames are valid
+        if not aligned_depth_frame or not color_frame:
+            print(" Not Valid!")
+            pass
 
+        depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
-        depth_image = np.asanyarray(depth_frame.get_data())
-        ir_image = np.asanyarray(ir_frame.get_data())
+        ir_image = np.asanyarray(aligned_ir_frame.get_data())
 
-        # depth_image = np.asanyarray(aligned_depth_frame.get_data())  # , dtype=np.uint16)
-        # depth_image = depth_image * self.get_depth_scale()
-        # color_image = np.asanyarray(color_frame.get_data())   # , dtype=np.uint8)
+        aligned_depth_image = np.asanyarray(aligned_depth_frame.get_data())
+        # aligned_color_image = np.asanyarray(aligned_color_frame.get_data())
+        aligned_ir_image = np.asanyarray(aligned_ir_frame.get_data())
+
 
         pc = rs.pointcloud()
         point_cloud = pc.calculate(aligned_depth_frame)
@@ -201,16 +212,15 @@ class L515:
         intrinsics.ppy: the pixel coordinates of the principal point (center of projection) in height
     """
 
-    def clip_distance(self, depth_image, distance, depth):
-        clipping_distance_in_meters = distance  # 1 meter
+    def clip_distance(self, depth_image, color_image, clipping_distance1, clipping_distance2):
 
-        clipping_distance = clipping_distance_in_meters / self.depth_scale
-
-        grey_color = 0
+        clipping_distance1 = clipping_distance1/self.depth_scale
+        clipping_distance2 = clipping_distance2/self.depth_scale
+        grey_color = 153
         depth_image_3d = np.dstack((depth_image, depth_image, depth_image))
-        bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
+        depth_clipped = np.where((depth_image_3d <= clipping_distance1) | (depth_image_3d > clipping_distance2), grey_color, color_image)
 
-        return bg_removed
+        return depth_clipped
 
     def get_w_h(self):
         # Get stream profile and camera intrinsics
