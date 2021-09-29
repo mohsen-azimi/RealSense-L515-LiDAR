@@ -17,7 +17,11 @@ def mouse_coord(event, x, y, args, params):
 
 
 # Initialize Camera
-camera = L515(read_bag=True)
+camera = L515(read_bag=False)
+
+
+
+i = 1
 # try:
     # Streaming loop
 while True:
@@ -31,6 +35,8 @@ while True:
     ir_image = f.ir_image
     pc = f.point_cloud
 
+    depth_clipped = camera.clip_distance(depth_image, color_image, 0, 2.5)
+
     # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
     depth_image_colorised = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=.03), cv.COLORMAP_JET)
 
@@ -39,9 +45,12 @@ while True:
     depth_image_colorised = cv.flip(depth_image_colorised, 1)
     # infrared = cv.flip(infrared, 1)
 
+
+
     if camera.enable_rgbd:
         cv.namedWindow('Color', cv.WINDOW_AUTOSIZE)
         cv.namedWindow('Depth', cv.WINDOW_AUTOSIZE)
+        cv.namedWindow('depth_clipped', cv.WINDOW_AUTOSIZE)
         # cv.namedWindow('IR', cv.WINDOW_AUTOSIZE)
         # cv.imshow('IR', infrared)
 
@@ -55,8 +64,13 @@ while True:
 
         cv.imshow('Color', color_image)
         cv.imshow('Depth', depth_image_colorised)
+        cv.imshow('depth_clipped', depth_clipped)
 
-        # # show pc
+        # # save to png
+        cv.imwrite('outputs/depth/depthimage_' + str(i) + '.png',depth_image_colorised)
+        cv.imwrite('outputs/color/colorimage_' + str(i) + '.png',color_image )
+
+        i += 1
 
     if cv.waitKey(1) & 0xff == 27:  # 27 = ESC
         break
