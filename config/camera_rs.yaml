@@ -15,7 +15,7 @@ depth_infrared:
   fps: 30
 
 imu:
-  fps: 400
+  fps: 100
 
 
 options:

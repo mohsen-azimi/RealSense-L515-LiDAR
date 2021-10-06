@@ -13,7 +13,7 @@ from tkinter import filedialog
 
 
 class Frame(object):
-    def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image,point_cloud , acceleration, gyroscope):
+    def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image,point_cloud , accel, gyro):
         self.color_frame = color_frame
         self.color_image = color_image
 
@@ -24,19 +24,23 @@ class Frame(object):
         self.ir_image = ir_image
 
         self.point_cloud = point_cloud
-        self.acceleration = acceleration
-        self.gyroscope = gyroscope
+        self.accel = accel
+        self.gyro = gyro
 
 
 class L515:
-    def __init__(self, enable_rgbd=True, enable_imu=False,
-                 record_bag=None, read_bag=None, reset=False):
+    def __init__(self, enable_rgbd=True, enable_imu=None, save_png=None,
+                 record_bag=None, read_bag=None, reset=None):
 
         self.reset = reset
-        print("connecting to camera...")
+        self.save_png = save_png
 
-        self.enable_imu = enable_imu
-        self.enable_rgbd = enable_rgbd
+        if enable_rgbd:
+            self.enable_imu = True
+            self.enable_rgbd = True
+        else:
+            self.enable_imu = enable_imu
+            self.enable_rgbd = enable_rgbd
 
         self.read_bag = read_bag
         self.read_bag_path = None
@@ -58,35 +62,28 @@ class L515:
         if not self.read_bag:
             profile = config.resolve(rs.pipeline_wrapper(self.pipeline))
             device = profile.get_device()
+            for i, s in enumerate(device.sensors):
+                print(f"Sensor({i}): ", s.get_info(rs.camera_info.name))
 
             if self.reset:
-                print("resetting...")
                 device.hardware_reset()
                 time.sleep(10)
-                print("reset!")
-        #
-
-        #
-        # # device_product_line = str(device.get_info(rs.camera_info.product_line))
-        # for i, s in enumerate(device.sensors):
-        #     print(f"Sensor({i}): ", s.get_info(rs.camera_info.name))
+                print("device reset!")
 
         if self.enable_rgbd:
             config.enable_stream(rs.stream.color, self.rgb_res[0], self.rgb_res[1], rs.format.bgr8, self.rgb_fps)
             config.enable_stream(rs.stream.depth, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.z16, self.rgb_fps)
             config.enable_stream(rs.stream.infrared, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.y8, self.rgb_fps)
-        #     self.config.enable_stream(rs.stream.confidence, CAM_WIDTH, CAM_HEIGHT, rs.format.raw8, CAM_FPS)
+            config.enable_stream(rs.stream.confidence, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.raw8, self.rgb_fps)
 
         if self.enable_imu:
             config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, self.imu_fps)  # acceleration
             config.enable_stream(rs.stream.gyro, rs.format.motion_xyz32f, self.imu_fps)  # gyroscope
-            config.enable_stream(rs.stream.pose, rs.format.six_dof, self.imu_fps)  #
+            # config.enable_stream(rs.stream.pose, rs.format.six_dof, self.imu_fps)  #
 
         if self.read_bag:
 
             self.read_bag_path = filedialog.askopenfilename(initialdir='outputs\\bag\\')
-            # self.read_bag_path = 'outputs\\bag\\bag.bag'
-            # config.enable_device_from_file(self.read_bag_path)
             config.enable_device_from_file(self.read_bag_path, repeat_playback=True)
             print(f'Reading data from {self.read_bag_path}')
 
@@ -146,7 +143,6 @@ class L515:
 
         # Get aligned frames
         aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image
-        # aligned_color_frame = aligned_frames.get_color_frame()
         aligned_ir_frame = aligned_frames.get_infrared_frame()
 
         # Validate that both frames are valid
@@ -158,26 +154,17 @@ class L515:
         color_image = np.asanyarray(color_frame.get_data())
         ir_image = np.asanyarray(aligned_ir_frame.get_data())
 
-        aligned_depth_image = np.asanyarray(aligned_depth_frame.get_data())
-        # aligned_color_image = np.asanyarray(aligned_color_frame.get_data())
-        aligned_ir_image = np.asanyarray(aligned_ir_frame.get_data())
-
 
         pc = rs.pointcloud()
         point_cloud = pc.calculate(aligned_depth_frame)
 
         if self.enable_imu:
-            # for frame in frames:
-            #     accel_data = frame.as_motion_frame().get_motion_data()
-            #     gyro_data = frame.as_motion_frame().get_motion_data()
-            #     accel = np.asarray([accel_data.x, accel_data.y, accel_data.z])
-            #     gyro = np.asarray([gyro_data.x, gyro_data.y, gyro_data.z])
 
-            accel = aligned_frames.first_or_default(rs.stream.accel, rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
-            acceleration = [accel.x, accel.y, accel.z]
+            acceleration = aligned_frames.first_or_default(rs.stream.accel, rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
+            accel = [acceleration.x, acceleration.y, acceleration.z]
 
-            gyro = aligned_frames.first_or_default(rs.stream.gyro, rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
-            gyroscope = [gyro.x, gyro.y, gyro.z]
+            gyroscope = aligned_frames.first_or_default(rs.stream.gyro, rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
+            gyro = [gyroscope.x, gyroscope.y, gyroscope.z]
 
 
             # pose = aligned_frames.get_pose_frame()  # for tracking
@@ -197,10 +184,10 @@ class L515:
             #     str(self.frame_time - last_time),
             #     str((self.acceleration_x, self.acceleration_y, self.acceleration_z)),
             # str((self.gyroscope_x, self.gyroscope_y, self.gyroscope_z))))}}
-            return Frame(color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image, point_cloud,  acceleration, gyroscope)
+            return Frame(color_frame, color_image, aligned_depth_frame, depth_image, aligned_ir_frame, ir_image, point_cloud,  accel, gyro)
 
         else:
-            return Frame(color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image, point_cloud,  None, None)
+            return Frame(color_frame, color_image, aligned_depth_frame, depth_image, aligned_ir_frame, ir_image, point_cloud,  None, None)
 
     """
     @Description: get intrinsics attributes of a camera

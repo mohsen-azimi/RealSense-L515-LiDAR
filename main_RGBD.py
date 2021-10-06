@@ -9,21 +9,20 @@ import pyrealsense2 as rs
 import numpy as np
 import open3d as o3d
 
-
 point = (400, 300)
+
+
 def mouse_coord(event, x, y, args, params):
     global point
     point = (x, y)
 
 
 # Initialize Camera
-camera = L515(read_bag=False)
-
-
+camera = L515(read_bag=0, record_bag=1, enable_imu=1)
 
 i = 1
 # try:
-    # Streaming loop
+# Streaming loop
 while True:
     # This call waits until a new coherent set of frames is available on a device
     # maintain frame timing
@@ -33,6 +32,8 @@ while True:
     color_image = f.color_image
     depth_image = f.depth_image
     ir_image = f.ir_image
+    accel = f.accel
+
     pc = f.point_cloud
 
     depth_clipped = camera.clip_distance(depth_image, color_image, 0, 2.5)
@@ -41,11 +42,9 @@ while True:
     depth_image_colorised = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=.03), cv.COLORMAP_JET)
 
     # # Flip image ?
-    color_image = cv.flip(color_image, 1)
-    depth_image_colorised = cv.flip(depth_image_colorised, 1)
+    # color_image = cv.flip(color_image, 1)
+    # depth_image_colorised = cv.flip(depth_image_colorised, 1)
     # infrared = cv.flip(infrared, 1)
-
-
 
     if camera.enable_rgbd:
         cv.namedWindow('Color', cv.WINDOW_AUTOSIZE)
@@ -67,8 +66,11 @@ while True:
         cv.imshow('depth_clipped', depth_clipped)
 
         # # save to png
-        cv.imwrite('outputs/depth/depthimage_' + str(i) + '.png',depth_image_colorised)
-        cv.imwrite('outputs/color/colorimage_' + str(i) + '.png',color_image )
+        if camera.save_png:
+            if i % 1000 == 0:
+                cv.imwrite('outputs/depth/depthimage_' + str(i) + '.png', depth_image_colorised)
+                cv.imwrite('outputs/depth_clipped/depth_clipped_' + str(i) + '.png', depth_clipped)
+                cv.imwrite('outputs/color/colorimage_' + str(i) + '.png', color_image)
 
         i += 1
 
@@ -76,5 +78,5 @@ while True:
         break
 
 # finally:
-    # Stop streaming
+# Stop streaming
 camera.pipeline.stop()

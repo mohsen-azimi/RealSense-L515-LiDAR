@@ -15,7 +15,7 @@ from app_state import AppState
 state = AppState()
 
 # Initialize Camera
-camera = L515(read_bag=True)
+camera = L515(read_bag=False)
 
 print(rs.camera_info)
 # Processing blocks
