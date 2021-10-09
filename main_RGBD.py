@@ -18,14 +18,14 @@ def mouse_coord(event, x, y, args, params):
 
 
 # Initialize Camera
-camera = L515(read_bag=0, record_bag=1, enable_imu=1)
-
+camera = L515(read_bag=0, record_bag=0)
+# camera.reset()
+# camera.set_options()
 i = 1
 # try:
 # Streaming loop
 while True:
-    # This call waits until a new coherent set of frames is available on a device
-    # maintain frame timing
+    # This call waits until a new coherent set of frames is available on a device maintain frame timing
 
     # read camera data
     f = camera.get_frame()
@@ -33,8 +33,10 @@ while True:
     depth_image = f.depth_image
     ir_image = f.ir_image
     accel = f.accel
+    gyro = f.gyro
 
-    pc = f.point_cloud
+    # print(gyro)
+    pcd = f.point_cloud
 
     depth_clipped = camera.clip_distance(depth_image, color_image, 0, 2.5)
 
@@ -47,9 +49,9 @@ while True:
     # infrared = cv.flip(infrared, 1)
 
     if camera.enable_rgbd:
-        cv.namedWindow('Color', cv.WINDOW_AUTOSIZE)
+        # cv.namedWindow('Color', cv.WINDOW_AUTOSIZE)
         cv.namedWindow('Depth', cv.WINDOW_AUTOSIZE)
-        cv.namedWindow('depth_clipped', cv.WINDOW_AUTOSIZE)
+        # cv.namedWindow('depth_clipped', cv.WINDOW_AUTOSIZE)
         # cv.namedWindow('IR', cv.WINDOW_AUTOSIZE)
         # cv.imshow('IR', infrared)
 
@@ -61,18 +63,20 @@ while True:
         # cv.putText(depth_image_colorised, f'{distance:.3f} m', (point[0], point[1] - 20), cv.FONT_HERSHEY_PLAIN, 2,
         #            (0, 255, 255), 4)
 
-        cv.imshow('Color', color_image)
+        # cv.imshow('Color', color_image)
         cv.imshow('Depth', depth_image_colorised)
-        cv.imshow('depth_clipped', depth_clipped)
+        # cv.imshow('depth_clipped', depth_clipped)
 
         # # save to png
-        if camera.save_png:
-            if i % 1000 == 0:
-                cv.imwrite('outputs/depth/depthimage_' + str(i) + '.png', depth_image_colorised)
-                cv.imwrite('outputs/depth_clipped/depth_clipped_' + str(i) + '.png', depth_clipped)
-                cv.imwrite('outputs/color/colorimage_' + str(i) + '.png', color_image)
+        # if camera.save_png:
+        #     if i % 1000 == 0:
+        #         cv.imwrite('outputs/depth/depthimage_' + str(i) + '.png', depth_image_colorised)
+        #         cv.imwrite('outputs/depth_clipped/depth_clipped_' + str(i) + '.png', depth_clipped)
+        #         cv.imwrite('outputs/color/colorimage_' + str(i) + '.png', color_image)
 
         i += 1
+        # print(pcd)
+        # o3d.visualization.draw_geometries(pcd, zoom=.8)
 
     if cv.waitKey(1) & 0xff == 27:  # 27 = ESC
         break

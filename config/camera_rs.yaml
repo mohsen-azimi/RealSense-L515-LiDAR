@@ -2,94 +2,94 @@
 name: L515
 # for L515, the resolution of rgb is 1280*720, 60fps; 1920*1080, 30fps.
 rgb:
-  width: 640
-  height: 480
+  width: 1280
+  height: 720
   fps: 30
 
 # the depth and infrared are corresponding, have same resolution
 # For D435, the resolution is multi, 640*480, 90fps; 1280*720, 30fps; 1280*800, 30fps
 # For L515, the resolution of rgb is 1024*768 or 640*480, and fps is 30
 depth_infrared:
-  width: 640
-  height: 480
+  width: 1024
+  height: 768
   fps: 30
 
 imu:
-  fps: 100
+  fps: 400
 
 
 options:
-  accuracy : option.accuracy
-  ambient_light : option.ambient_light
-  apd_temperature : option.apd_temperature
-  asic_temperature : option.asic_temperature
-  auto_exposure_converge_step : option.auto_exposure_converge_step
-  auto_exposure_mode : option.auto_exposure_mode
-  auto_exposure_priority : option.auto_exposure_priority
-  avalanche_photo_diode : option.avalanche_photo_diode
+  accuracy : None
+  ambient_light : None
+  apd_temperature : None
+  asic_temperature : None
+  auto_exposure_converge_step : None
+  auto_exposure_mode : 0
+  auto_exposure_priority : None
+  avalanche_photo_diode : None
   backlight_compensation : 128 # [0, 255]
   brightness : 0 # [-64, +64]
-  color_scheme : option.color_scheme
+  color_scheme : None
   confidence_threshold : 0 # [0,3]
   contrast : 50 # [0, 100]
-  depth_offset : option.depth_offset
+  depth_offset : None
   depth_units : 0.0002500000118743628 # Depth Scale: print(camera.depth_scale)
-  emitter_enabled : option.emitter_enabled
-  emitter_on_off : option.emitter_on_off
+  emitter_enabled : None
+  emitter_on_off : None
   enable_auto_exposure : 1 # option.enable_auto_exposure
-  enable_auto_white_balance : option.enable_auto_white_balance
-  enable_dynamic_calibration : option.enable_dynamic_calibration
-  enable_map_preservation : option.enable_map_preservation
-  enable_mapping : option.enable_mapping
-  enable_motion_correction : option.enable_motion_correction
-  enable_pose_jumping : option.enable_pose_jumping
-  enable_relocalization : option.enable_relocalization
-  error_polling_enabled : option.error_polling_enabled
-  exposure : 100
-  filter_magnitude : option.filter_magnitude
-  filter_option : option.filter_option
-  filter_smooth_alpha : option.filter_smooth_alpha
-  filter_smooth_delta : option.filter_smooth_delta
-  frames_queue_size : option.frames_queue_size
-  freefall_detection_enabled : option.freefall_detection_enabled
-  gain : 250
-  gamma : option.gamma
+  enable_auto_white_balance : None
+  enable_dynamic_calibration : None
+  enable_map_preservation : None
+  enable_mapping : None
+  enable_motion_correction : None
+  enable_pose_jumping : None
+  enable_relocalization : None
+  error_polling_enabled : None
+  exposure : 5000
+  filter_magnitude : None
+  filter_option : None
+  filter_smooth_alpha : None
+  filter_smooth_delta : None
+  frames_queue_size : None
+  freefall_detection_enabled : None
+  gain : 0
+  gamma : None
   global_time_enabled : 1
-  hardware_preset : option.hardware_preset
-  histogram_equalization_enabled : option.histogram_equalization_enabled
-  holes_fill : option.holes_fill
+  hardware_preset : None
+  histogram_equalization_enabled : None
+  holes_fill : None
   hue : 0 # [-180, 180]
-  inter_cam_sync_mode : option.inter_cam_sync_mode
+  inter_cam_sync_mode : None
   invalidation_bypass : 1 # [true false]
-  laser_power : 100 # [0, 100]
-  led_power : option.led_power
-  lld_temperature : option.lld_temperature
-  ma_temperature : option.ma_temperature
-  max_distance : option.max_distance
-  mc_temperature : option.mc_temperature
+  laser_power : 50 # [0, 100]
+  led_power : None
+  lld_temperature : None
+  ma_temperature : None
+  max_distance : None
+  mc_temperature : None
   min_distance : 0 # [0, 8_000] in mm
-  motion_module_temperature : option.motion_module_temperature
-  motion_range : option.motion_range
+  motion_module_temperature : None
+  motion_range : None
   noise_filtering : 6 # [0, 6]
-  output_trigger_enabled : option.output_trigger_enabled
+  output_trigger_enabled : None
   post_processing_sharpening : 3 # [0, 3]
-  power_line_frequency : option.power_line_frequency
+  power_line_frequency : None
   pre_processing_sharpening : 5 # [0, 5]
-  projector_temperature : option.projector_temperature
+  projector_temperature : None
   saturation : 50 # [0, 100]
-  sensor_mode : option.sensor_mode
+  sensor_mode : None
   sharpness : 50 # [0, 100]
-  stereo_baseline : option.stereo_baseline
-  stream_filter : option.stream_filter
-  stream_format_filter : option.stream_format_filter
-  stream_index_filter : option.stream_index_filter
-  texture_source : option.texture_source
-  total_frame_drops : option.total_frame_drops
-  visual_preset : option.visual_preset
-  white_balance : 4600 # [2800, 6500] enable auto
-  zero_order_enabled : option.zero_order_enabled
-  zero_order_point_x : option.zero_order_point_x¶
-  zero_order_point_y : option.zero_order_point_y
+  stereo_baseline : None
+  stream_filter : None
+  stream_format_filter : None
+  stream_index_filter : None
+  texture_source : None
+  total_frame_drops : None
+  visual_preset : None
+  white_balance : None # [2800, 6500] enable auto
+  zero_order_enabled : None
+  zero_order_point_x : None
+  zero_order_point_y : None
 
 
 #inner_matrix:

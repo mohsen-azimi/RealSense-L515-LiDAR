@@ -9,11 +9,13 @@ import logging
 import numpy as np
 import pyrealsense2 as rs
 import yaml
+from tkinter import *
 from tkinter import filedialog
 
 
 class Frame(object):
-    def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image,point_cloud , accel, gyro):
+    def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image, point_cloud, accel,
+                 gyro):
         self.color_frame = color_frame
         self.color_image = color_image
 
@@ -30,9 +32,9 @@ class Frame(object):
 
 class L515:
     def __init__(self, enable_rgbd=True, enable_imu=None, save_png=None,
-                 record_bag=None, read_bag=None, reset=None):
+                 record_bag=None, read_bag=None):
 
-        self.reset = reset
+        # self.reset = reset
         self.save_png = save_png
 
         if enable_rgbd:
@@ -65,16 +67,15 @@ class L515:
             for i, s in enumerate(device.sensors):
                 print(f"Sensor({i}): ", s.get_info(rs.camera_info.name))
 
-            if self.reset:
-                device.hardware_reset()
-                time.sleep(10)
-                print("device reset!")
 
         if self.enable_rgbd:
             config.enable_stream(rs.stream.color, self.rgb_res[0], self.rgb_res[1], rs.format.bgr8, self.rgb_fps)
-            config.enable_stream(rs.stream.depth, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.z16, self.rgb_fps)
-            config.enable_stream(rs.stream.infrared, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.y8, self.rgb_fps)
-            config.enable_stream(rs.stream.confidence, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.raw8, self.rgb_fps)
+            config.enable_stream(rs.stream.depth, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.z16,
+                                 self.rgb_fps)
+            config.enable_stream(rs.stream.infrared, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.y8,
+                                 self.rgb_fps)
+            config.enable_stream(rs.stream.confidence, self.depth_ir_res[0], self.depth_ir_res[1], rs.format.raw8,
+                                 self.rgb_fps)
 
         if self.enable_imu:
             config.enable_stream(rs.stream.accel, rs.format.motion_xyz32f, self.imu_fps)  # acceleration
@@ -82,13 +83,15 @@ class L515:
             # config.enable_stream(rs.stream.pose, rs.format.six_dof, self.imu_fps)  #
 
         if self.read_bag:
-
+            root = Tk()
+            # root.withdraw()
             self.read_bag_path = filedialog.askopenfilename(initialdir='outputs\\bag\\')
+            root.destroy()
             config.enable_device_from_file(self.read_bag_path, repeat_playback=True)
             print(f'Reading data from {self.read_bag_path}')
 
         elif self.record_bag:
-            self.record_bag_path = time.strftime('outputs\\bag\\%Y%m%d_%H%M%S')+'.bag'
+            self.record_bag_path = time.strftime('outputs\\bag\\%Y%m%d_%H%M%S') + '.bag'
             config.enable_record_to_file(self.record_bag_path)
             print(f'Recording data to {self.record_bag_path}')
 
@@ -114,6 +117,17 @@ class L515:
         #     self.pipeline.wait_for_frames()
 
 
+    # def reset(self):
+    #     profile = self.pipeline.get_active_profile()
+    #     device = profile.get_device()
+    #     device.hardware_reset()
+    #     print('Resetting', end='')
+    #     for t in range(5):
+    #         print('.', end='')
+    #         time.sleep(1)
+    #     print('Reset!')
+
+
     def get_options(self):
         sensor = self.pipeline.get_active_profile().get_device().query_sensors()[1]
         print(sensor.get_option(rs.option.exposure))
@@ -122,12 +136,13 @@ class L515:
         # Get the sensor once at the beginning. (Sensor index: 1)
         sensor = self.pipeline.get_active_profile().get_device().query_sensors()[1]
 
-        # Set the exposure anytime during the operation
-        # rs.option.exposure = self._cfg['options']['exposure']
-
-        sensor.set_option(rs.option.enable_auto_exposure, 0)
-        sensor.set_option(rs.option.exposure, self._cfg['options']['exposure'])
-
+        # set options from config file.
+        for opt in self._cfg['options']:
+            if not self._cfg['options'][opt] == 'None':
+                for key in rs.option.__dict__.keys():
+                    if str(key) == opt:
+                        sensor.set_option(rs.option.exposure, self._cfg['options'][opt])
+                        print(f"setting {key}={self._cfg['options'][opt]}")
 
 
     def get_frame(self):
@@ -154,18 +169,18 @@ class L515:
         color_image = np.asanyarray(color_frame.get_data())
         ir_image = np.asanyarray(aligned_ir_frame.get_data())
 
-
         pc = rs.pointcloud()
         point_cloud = pc.calculate(aligned_depth_frame)
 
         if self.enable_imu:
 
-            acceleration = aligned_frames.first_or_default(rs.stream.accel, rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
+            acceleration = aligned_frames.first_or_default(rs.stream.accel,
+                                                           rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
             accel = [acceleration.x, acceleration.y, acceleration.z]
 
-            gyroscope = aligned_frames.first_or_default(rs.stream.gyro, rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
+            gyroscope = aligned_frames.first_or_default(rs.stream.gyro,
+                                                        rs.format.motion_xyz32f).as_motion_frame().get_motion_data()
             gyro = [gyroscope.x, gyroscope.y, gyroscope.z]
-
 
             # pose = aligned_frames.get_pose_frame()  # for tracking
             # if pose:
@@ -184,10 +199,12 @@ class L515:
             #     str(self.frame_time - last_time),
             #     str((self.acceleration_x, self.acceleration_y, self.acceleration_z)),
             # str((self.gyroscope_x, self.gyroscope_y, self.gyroscope_z))))}}
-            return Frame(color_frame, color_image, aligned_depth_frame, depth_image, aligned_ir_frame, ir_image, point_cloud,  accel, gyro)
+            return Frame(color_frame, color_image, aligned_depth_frame, depth_image, aligned_ir_frame, ir_image,
+                         point_cloud, accel, gyro)
 
         else:
-            return Frame(color_frame, color_image, aligned_depth_frame, depth_image, aligned_ir_frame, ir_image, point_cloud,  None, None)
+            return Frame(color_frame, color_image, aligned_depth_frame, depth_image, aligned_ir_frame, ir_image,
+                         point_cloud, None, None)
 
     """
     @Description: get intrinsics attributes of a camera
@@ -201,11 +218,12 @@ class L515:
 
     def clip_distance(self, depth_image, color_image, clipping_distance1, clipping_distance2):
 
-        clipping_distance1 = clipping_distance1/self.depth_scale
-        clipping_distance2 = clipping_distance2/self.depth_scale
+        clipping_distance1 = clipping_distance1 / self.depth_scale
+        clipping_distance2 = clipping_distance2 / self.depth_scale
         grey_color = 153
         depth_image_3d = np.dstack((depth_image, depth_image, depth_image))
-        depth_clipped = np.where((depth_image_3d <= clipping_distance1) | (depth_image_3d > clipping_distance2), grey_color, color_image)
+        depth_clipped = np.where((depth_image_3d <= clipping_distance1) | (depth_image_3d > clipping_distance2),
+                                 grey_color, color_image)
 
         return depth_clipped
 
