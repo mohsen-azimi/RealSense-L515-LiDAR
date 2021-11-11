@@ -18,10 +18,10 @@ def mouse_coord(event, x, y, args, params):
 
 
 # Initialize Camera
-camera = L515(read_bag=0, record_bag=0)
+camera = L515(read_bag=1, record_bag=0)
 # camera.reset()
 # camera.set_options()
-i = 1
+i = 0
 # try:
 # Streaming loop
 while True:
@@ -38,7 +38,7 @@ while True:
     # print(gyro)
     pcd = f.point_cloud
 
-    depth_clipped = camera.clip_distance(depth_image, color_image, 0, 2.5)
+    depth_clipped = camera.clip_distance(depth_image, color_image, 1, 3)
 
     # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
     depth_image_colorised = cv.applyColorMap(cv.convertScaleAbs(depth_image, alpha=.03), cv.COLORMAP_JET)
@@ -49,9 +49,9 @@ while True:
     # infrared = cv.flip(infrared, 1)
 
     if camera.enable_rgbd:
-        # cv.namedWindow('Color', cv.WINDOW_AUTOSIZE)
+        cv.namedWindow('Color', cv.WINDOW_AUTOSIZE)
         cv.namedWindow('Depth', cv.WINDOW_AUTOSIZE)
-        # cv.namedWindow('depth_clipped', cv.WINDOW_AUTOSIZE)
+        cv.namedWindow('depth_clipped', cv.WINDOW_AUTOSIZE)
         # cv.namedWindow('IR', cv.WINDOW_AUTOSIZE)
         # cv.imshow('IR', infrared)
 
@@ -63,9 +63,9 @@ while True:
         # cv.putText(depth_image_colorised, f'{distance:.3f} m', (point[0], point[1] - 20), cv.FONT_HERSHEY_PLAIN, 2,
         #            (0, 255, 255), 4)
 
-        # cv.imshow('Color', color_image)
+        cv.imshow('Color', color_image)
         cv.imshow('Depth', depth_image_colorised)
-        # cv.imshow('depth_clipped', depth_clipped)
+        cv.imshow('depth_clipped', depth_clipped)
 
         # # save to png
         # if camera.save_png:
@@ -75,6 +75,7 @@ while True:
         #         cv.imwrite('outputs/color/colorimage_' + str(i) + '.png', color_image)
 
         i += 1
+        print(i)
         # print(pcd)
         # o3d.visualization.draw_geometries(pcd, zoom=.8)
 

@@ -15,7 +15,7 @@ from app_state import AppState
 state = AppState()
 
 # Initialize Camera
-camera = L515(read_bag=0, record_bag=0)
+camera = L515(read_bag=1, record_bag=0)
 
 print(rs.camera_info)
 # Processing blocks
@@ -23,7 +23,6 @@ pc = rs.pointcloud()
 decimate = rs.decimation_filter()
 decimate.set_option(rs.option.filter_magnitude, 2 ** state.decimate)
 colorizer = rs.colorizer()
-
 
 def mouse_cb(event, x, y, flags, param):
     if event == cv.EVENT_LBUTTONDOWN:

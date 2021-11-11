@@ -8,8 +8,8 @@ import sys
 
 pcd = o3d.io.read_point_cloud('out.ply')
 
-print(pcd)
-print(np.asarray(pcd.points))
+# print(pcd)
+# print(np.asarray(pcd.points))
 # o3d.visualization.draw_geometries(
 #     [pcd],
 #     zoom=0.3,
@@ -17,7 +17,7 @@ print(np.asarray(pcd.points))
 #     lookat=[2.5, 2.0, 1.5],
 #     up=[-.05, -.9, .2]
 # )
-o3d.visualization.draw_geometries([pcd])
+# o3d.visualization.draw_geometries([pcd])
 
 
 

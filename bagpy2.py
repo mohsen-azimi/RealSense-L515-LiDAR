@@ -1,17 +1,13 @@
 from bagpy import bagreader
-# import bagpy
-# import pandas as pd
-# import seaborn as sea
-# import matplotlib.pyplot as plt
 
 
-b = bagreader('outputs\\bag\\20211006_181647.bag')
+b = bagreader('outputs\\bag\\20211007_135307.bag')
 # b = bagreader('outputs\\bag\\OS1-64_city1.bag')
 
-# print(b.__dict__)
-# print(b.reader)
+print(b.reader)
 # print(b.topic_table)
-data = b.message_by_topic('/device_0/sensor_2/Accel_0/imu')
+data = b.message_by_topic('/device_0/sensor_0/l500_data')
+
 print(data)
 # csvfiles = []
 # for t in b.topics:
