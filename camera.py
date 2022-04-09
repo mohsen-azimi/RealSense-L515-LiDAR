@@ -49,7 +49,7 @@ class L515:
         self.record_bag = record_bag
         self.record_bag_path = None
 
-        self._cfg = yaml.load(open('config\\camera_rs.yaml', 'r'), Loader=yaml.FullLoader)
+        self._cfg = yaml.load(open('config/camera_rs.yaml', 'r'), Loader=yaml.FullLoader)
         self.imu_fps = self._cfg['imu']['fps']
         self.rgb_fps = self._cfg['rgb']['fps']
         self.rgb_res = (self._cfg['rgb']['width'], self._cfg['rgb']['height'])
