@@ -13,6 +13,7 @@ from tkinter import *
 from tkinter import filedialog
 
 
+
 class Frame(object):
     def __init__(self, color_frame, color_image, depth_frame, depth_image, ir_frame, ir_image, point_cloud, accel,
                  gyro):
