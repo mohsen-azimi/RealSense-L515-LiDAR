@@ -226,7 +226,10 @@ class L515:
         depth_clipped = np.where((depth_image_3d <= clipping_distance1) | (depth_image_3d > clipping_distance2),
                                  grey_color, color_image)
 
-        return depth_clipped
+
+        mask_clipped = np.where((depth_clipped != 153),np.ones_like(color_image)*255, np.ones_like(color_image)*0)
+
+        return depth_clipped, mask_clipped
 
     def get_w_h(self):
         # Get stream profile and camera intrinsics
